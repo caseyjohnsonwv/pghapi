@@ -13,5 +13,5 @@ class Location(Base):
     __tablename__ = "locations"
     id = Column(Integer, primary_key=True)
     address = Column(String, unique=True, nullable=False)
-    nickname = Column(String, unique=True)
+    nickname = Column(String)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
