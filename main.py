@@ -35,23 +35,28 @@ def create_user(user: schemas.UserBase, db: Session = Depends(get_db)):
     return crud.create_user(db, user=user)
 
 @app.get("/locations", response_model=List[schemas.Location])
-def get_location(phone: str, nickname: Optional[str]=None, address: Optional[str]=None, db: Session = Depends(get_db)):
-    if address:
-        locations = [crud.get_location_by_address(db, address=address)]
-    elif nickname:
-        locations = [crud.get_location_by_nickname_and_phone(db, nickname=nickname, phone=phone)]
+def get_locations(phone: str, nickname: Optional[str]=None, db: Session = Depends(get_db)):
+    if nickname:
+        locations = [crud.get_user_location_by_nickname_and_phone(db, nickname=nickname, phone=phone)]
     else:
-        locations = crud.get_locations_by_user_phone(db, phone=phone)
-    if not locations:
+        locations = crud.get_user_locations_by_phone(db, phone=phone)
+    if not locations[0]:
         raise HTTPException(status_code=404, detail="Location(s) not found")
     return locations
 
 @app.post("/locations", response_model=schemas.Location)
-def create_location(location: schemas.CreateLocation, db: Session = Depends(get_db)):
+def create_location(location: schemas.LocationBase, db: Session = Depends(get_db)):
     db_location = crud.get_location_by_address(db, address=location.address)
     if db_location:
         raise HTTPException(status_code=400, detail="Location already created")
     return crud.create_location(db, location=location)
+
+@app.post("/user-locations", response_model=schemas.UserLocation)
+def create_user_location(user_location: schemas.CreateUserLocation, db: Session = Depends(get_db)):
+    db_user_location = crud.get_user_location_by_address_and_phone(db, address=user_location.address, phone=user_location.phone)
+    if db_user_location:
+        raise HTTPException(status_code=400, detail="User location already created")
+    return crud.create_user_location(db, user_location_creator=user_location)
 
 if __name__ == '__main__':
     uvicorn.run(app, host=env.HOST_ADDRESS, port=env.HOST_PORT)
