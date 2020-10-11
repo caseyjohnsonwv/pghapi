@@ -34,7 +34,7 @@ def get_user(phone: str, db: Session = Depends(get_db)):
 def create_user(user: schemas.UserBase, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_phone(db, phone=user.phone)
     if db_user:
-        raise HTTPException(status_code=400, detail="Phone already registered")
+        raise HTTPException(status_code=409, detail="Phone already registered")
     return crud.create_user(db, user=user)
 
 
@@ -50,7 +50,7 @@ def get_locations(address: str, db: Session = Depends(get_db)):
 def create_location(location: schemas.LocationBase, db: Session = Depends(get_db)):
     db_location = crud.get_location_by_address(db, address=location.address)
     if db_location:
-        raise HTTPException(status_code=400, detail="Location already created")
+        raise HTTPException(status_code=409, detail="Location already created")
     return crud.create_location(db, location=location)
 
 
@@ -78,7 +78,7 @@ def create_user_location(user_location_creator: schemas.UserLocation, db: Sessio
         raise HTTPException(status_code=404, detail="Location not found")
     db_user_location = crud.get_user_location_by_user_and_location(db, user=db_user, location=db_location)
     if db_user_location:
-        raise HTTPException(status_code=400, detail="User location already created")
+        raise HTTPException(status_code=409, detail="User location already created")
     out = crud.create_user_location(db, user=db_user, location=db_location, nickname=user_location_creator.nickname)
     return out
 

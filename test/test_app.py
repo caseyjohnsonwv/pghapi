@@ -85,11 +85,11 @@ def test_create_user():
     assert r.status_code == 200
 
 def test_create_existing_user():
-    # expect 400 already created
+    # expect 409 already created
     route = users_route
     data = user1.to_json()
     r = client.post(route, json=data)
-    assert r.status_code == 400
+    assert r.status_code == 409
 
 def test_get_user():
     # expect 200 ok + data matches
@@ -123,11 +123,11 @@ def test_create_location():
     assert r.status_code == 200
 
 def test_create_existing_location():
-    # expect 400 already exists
+    # expect 409 already created
     route = locations_route
     data = location1.to_json()
     r = client.post(route, json=data)
-    assert r.status_code == 400
+    assert r.status_code == 409
 
 def test_get_location():
     # expect 200 ok + matching data
@@ -184,11 +184,11 @@ def test_create_user_location_with_nickname():
     assert r.status_code == 200
 
 def test_create_existing_user_location():
-    # expect 400 already exists
+    # expect 409 already exists
     route = user_locations_route
     data = user1_location1.to_json()
     r = client.post(route, json=data)
-    assert r.status_code == 400
+    assert r.status_code == 409
 
 def test_create_user_location_different_user_same_address():
     # expect 200 ok
