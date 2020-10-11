@@ -59,11 +59,17 @@ def get_user_locations(phone: str, nickname: Optional[str]=None, db: Session = D
     return locations
 
 @app.post("/user-locations", response_model=schemas.UserLocation)
-def create_user_location(user_location: schemas.CreateUserLocation, db: Session = Depends(get_db)):
-    db_user_location = crud.get_user_location_by_address_and_phone(db, address=user_location.address, phone=user_location.phone)
+def create_user_location(user_location_creator: schemas.CreateUserLocation, db: Session = Depends(get_db)):
+    db_user_location = crud.get_user_location_by_address_and_phone(db, address=user_location_creator.address, phone=user_location_creator.phone)
     if db_user_location:
         raise HTTPException(status_code=400, detail="User location already created")
-    return crud.create_user_location(db, user_location_creator=user_location)
+    db_user = crud.get_user_by_phone(db, phone=user_location_creator.phone)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    db_location = crud.get_location_by_address(db, address=user_location_creator.address)
+    if not db_location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    return crud.create_user_location(db, user=db_user, location=db_location)
 
 if __name__ == '__main__':
     uvicorn.run(app, host=env.HOST_ADDRESS, port=env.HOST_PORT)

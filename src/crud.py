@@ -38,9 +38,7 @@ def get_user_location_by_address_and_phone(db: Session, address: str, phone: str
     if user and location:
         return db.query(models.UserLocation).filter(models.UserLocation.user_id == user.id, models.UserLocation.location_id == location.id).first()
 
-def create_user_location(db: Session, user_location_creator: schemas.CreateUserLocation):
-    user = get_user_by_phone(db, user_location_creator.phone)
-    location = get_location_by_address(db, user_location_creator.address)
+def create_user_location(db: Session, user: schemas.User, location: schemas.Location):
     db_user_location = models.UserLocation(user_id=user.id, location_id=location.id, nickname=user_location_creator.nickname)
     db.add(db_user_location)
     db.commit()
