@@ -1,6 +1,15 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
 
+
+class CrudUtils:
+    def user_location_ref_to_readable(db: Session, ref: schemas.UserLocationRef):
+        if ref:
+            user = db.query(models.User).filter(models.User.id == ref.user_id).first()
+            location = db.query(models.Location).filter(models.Location.id == ref.location_id).first()
+            return {"phone":user.phone,"address":location.address,"nickname":ref.nickname}
+
+
 def get_user_by_phone(db: Session, phone: str):
     return db.query(models.User).filter(models.User.phone == phone).first()
 
@@ -10,6 +19,7 @@ def create_user(db: Session, user: schemas.UserBase):
     db.commit()
     db.refresh(db_user)
     return db_user
+
 
 def get_location_by_address(db: Session, address: str):
     return db.query(models.Location).filter(models.Location.address == address).first()
@@ -21,26 +31,27 @@ def create_location(db: Session, location: schemas.LocationBase):
     db.refresh(db_location)
     return db_location
 
+
 def get_user_locations_by_phone(db: Session, phone: str):
     user = get_user_by_phone(db, phone)
-    if not user:
-        return [None]
-    return db.query(models.UserLocation).filter(models.UserLocation.user_id == user.id).all() or [None]
+    refs = db.query(models.UserLocation).filter(models.UserLocation.user_id == user.id).all()
+    out = []
+    for ref in refs:
+        out.append(CrudUtils.user_location_ref_to_readable(db, ref=ref))
+    return out
 
 def get_user_location_by_nickname_and_phone(db: Session, nickname: str, phone: str):
     user = get_user_by_phone(db, phone)
-    if user:
-        return db.query(models.UserLocation).filter(models.UserLocation.user_id == user.id, models.UserLocation.nickname == nickname).first()
+    ref = db.query(models.UserLocation).filter(models.UserLocation.user_id == user.id, models.UserLocation.nickname == nickname).first()
+    return CrudUtils.user_location_ref_to_readable(db, ref=ref)
 
-def get_user_location_by_address_and_phone(db: Session, address: str, phone: str):
-    user = get_user_by_phone(db, phone)
-    location = get_location_by_address(db, address)
-    if user and location:
-        return db.query(models.UserLocation).filter(models.UserLocation.user_id == user.id, models.UserLocation.location_id == location.id).first()
+def get_user_location_by_user_and_location(db: Session, user: schemas.User, location: schemas.Location):
+    ref = db.query(models.UserLocation).filter(models.UserLocation.user_id == user.id, models.UserLocation.location_id == location.id).first()
+    return CrudUtils.user_location_ref_to_readable(db, ref=ref)
 
-def create_user_location(db: Session, user: schemas.User, location: schemas.Location):
-    db_user_location = models.UserLocation(user_id=user.id, location_id=location.id, nickname=user_location_creator.nickname)
+def create_user_location(db: Session, user: schemas.User, location: schemas.Location, nickname:str = None):
+    db_user_location = models.UserLocation(user_id=user.id, location_id=location.id, nickname=nickname)
     db.add(db_user_location)
     db.commit()
     db.refresh(db_user_location)
-    return db_user_location
+    return get_user_location_by_user_and_location(db, user=user, location=location)

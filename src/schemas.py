@@ -10,17 +10,18 @@ class Location(LocationBase):
         orm_mode = True
 
 
-class UserLocation(BaseModel):
-    location_id: int
-    user_id: int
+class UserLocationBase(BaseModel):
     nickname: Optional[str] = None
+
+class UserLocationRef(UserLocationBase):
+    user_id: int
+    location_id: int
     class Config:
         orm_mode = True
 
-class CreateUserLocation(BaseModel):
+class UserLocation(UserLocationBase):
     address: str
     phone: str
-    nickname: Optional[str] = None
     class Config:
         orm_mode = True
 
