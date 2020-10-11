@@ -34,15 +34,12 @@ def create_user(user: schemas.UserBase, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Phone already registered")
     return crud.create_user(db, user=user)
 
-@app.get("/locations", response_model=List[schemas.Location])
-def get_locations(phone: str, nickname: Optional[str]=None, db: Session = Depends(get_db)):
-    if nickname:
-        locations = [crud.get_user_location_by_nickname_and_phone(db, nickname=nickname, phone=phone)]
-    else:
-        locations = crud.get_user_locations_by_phone(db, phone=phone)
-    if not locations[0]:
-        raise HTTPException(status_code=404, detail="Location(s) not found")
-    return locations
+@app.get("/locations", response_model=schemas.Location)
+def get_locations(address: str, db: Session = Depends(get_db)):
+    db_location = crud.get_location_by_address(db, address=address)
+    if db_location is None:
+        raise HTTPException(status_code=404, detail="Location not found")
+    return db_location
 
 @app.post("/locations", response_model=schemas.Location)
 def create_location(location: schemas.LocationBase, db: Session = Depends(get_db)):
@@ -50,6 +47,16 @@ def create_location(location: schemas.LocationBase, db: Session = Depends(get_db
     if db_location:
         raise HTTPException(status_code=400, detail="Location already created")
     return crud.create_location(db, location=location)
+
+@app.get("/user-locations", response_model=schemas.UserLocation)
+def get_user_locations(phone: str, nickname: Optional[str]=None, db: Session = Depends(get_db)):
+    if nickname:
+        locations = [crud.get_user_location_by_nickname_and_phone(db, nickname=nickname, phone=phone)]
+    else:
+        locations = crud.get_user_locations_by_phone(db, phone=phone)
+    if not locations[0]:
+        raise HTTPException(status_code=404, detail="User location(s) not found")
+    return locations
 
 @app.post("/user-locations", response_model=schemas.UserLocation)
 def create_user_location(user_location: schemas.CreateUserLocation, db: Session = Depends(get_db)):

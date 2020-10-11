@@ -3,6 +3,7 @@ import env
 from .startup import client
 
 users_route = '/users'
+locations_route = '/locations'
 
 
 """
@@ -15,12 +16,30 @@ class User:
         self.phone = phone
     def to_json(self):
         return {"name":self.name,"phone":self.phone}
-user1 = User("John Smith","1111111111")
-user2 = User("Mary Carpenter","2222222222")
+user1 = User(name="John Smith", phone="1111111111")
+user2 = User(name="Mary Carpenter", phone="2222222222")
+
+class Location:
+    def __init__(self, address:str):
+        self.address = address
+    def to_json(self):
+        return {"address":self.address}
+location1 = Location(address="210 Sixth Avenue, Pittsburgh, PA 15222")
+location2 = Location(address="1 PPG Place, Pittsburgh, PA 15222")
+
+"""
+STARTUP TESTS
+"""
+
+def test_healthcheck():
+    route = "/healthcheck"
+    r = client.get(route)
+    assert r.status_code == 200
+    assert r.json() == {"Status":"Alive"}
 
 
 """
-TEST CASES BELOW
+USER TESTS
 """
 
 def test_create_user_missing_name():
@@ -65,5 +84,38 @@ def test_get_user():
 def test_get_nonexistent_user():
     # expect 404 not found
     route = "{route}?phone={phone}".format(route=users_route, phone=user2.phone)
+    r = client.get(route)
+    assert r.status_code == 404
+
+
+"""
+LOCATION TESTS
+"""
+
+def test_create_location():
+    # expect 200 ok
+    route = locations_route
+    data = location1.to_json()
+    r = client.post(route, json=data)
+    assert r.status_code == 200
+
+def test_create_existing_location():
+    # expect 400 already exists
+    route = locations_route
+    data = location1.to_json()
+    r = client.post(route, json=data)
+    assert r.status_code == 400
+
+def test_get_location():
+    # expect 200 ok + matching data
+    route = "{route}?address={address}".format(route=locations_route, address=location1.address)
+    r = client.get(route)
+    r_json = r.json()
+    assert r.status_code == 200
+    assert r_json["address"] == location1.address
+
+def test_get_nonexistent_location():
+    # expect 404 not found
+    route = "{route}?address={address}".format(route=locations_route, address=location2.address)
     r = client.get(route)
     assert r.status_code == 404
