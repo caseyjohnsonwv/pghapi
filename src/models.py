@@ -9,12 +9,12 @@ class User(Base):
     name = Column(String, nullable=False)
     locations = relationship("UserLocation")
 
-    def to_json(id=False, locations=False):
-        j = {"phone":phone, "name":name}
-        if id:
-            j["id"] = id
-        if locations:
-            j["locations"] = locations
+    def to_json(self, id=False, locations=False):
+        j = {"phone":self.phone, "name":self.name}
+        if self.id:
+            j["id"] = self.id
+        if self.locations:
+            j["locations"] = self.locations
         return j
 
 
@@ -24,8 +24,8 @@ class UserLocation(Base):
     location_id = Column(Integer, ForeignKey("locations.id"), primary_key=True)
     nickname = Column(String)
 
-    def to_json():
-        return {"user_id":user_id, "location_id":location_id, "nickname":nickname}
+    def to_json(self):
+        return {"user_id":self.user_id, "location_id":self.location_id, "nickname":self.nickname}
 
 
 class Location(Base):
@@ -33,8 +33,8 @@ class Location(Base):
     id = Column(Integer, primary_key=True)
     address = Column(String, unique=True, nullable=False)
 
-    def to_json(id=False):
-        j = {"address":address}
-        if id:
-            j["id"] = id
+    def to_json(self, id=False):
+        j = {"address":self.address}
+        if self.id:
+            j["id"] = self.id
         return j
