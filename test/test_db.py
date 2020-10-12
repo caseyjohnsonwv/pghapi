@@ -1,4 +1,3 @@
-from sqlalchemy.orm import Session
 import pytest
 import env
 from src import models
@@ -30,9 +29,9 @@ def Mary():
 def PPG():
     return models.Location(address="1 PPG() Pl")
 def Heinz():
-    Heinz = models.Location(address="300 Heinz St")
+    return models.Location(address="300 Heinz St")
 def Steelers():
-    models.Location(address="100 Art Rooney Ave")
+    return models.Location(address="100 Art Rooney Ave")
 
 # automatically resets database between tests
 @pytest.fixture(autouse=True)
