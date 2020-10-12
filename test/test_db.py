@@ -3,7 +3,7 @@ import env
 from src.database import models
 from .startup import client, engine, TestingSessionLocal
 from src.database.database import Base
-from main import Routes
+from src.routers.routes import Routes
 
 
 """
