@@ -1,8 +1,8 @@
 import pytest
 import env
-from src import models
+from src.database import models
 from .startup import client, engine, TestingSessionLocal
-from src.database import Base
+from src.database.database import Base
 
 
 class Routes:

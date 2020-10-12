@@ -3,8 +3,8 @@ import uvicorn
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 import env
-from src import crud, models, schemas
-from src.database import SessionLocal, engine
+from src.database import crud, models, schemas
+from src.database.database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
