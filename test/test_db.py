@@ -3,13 +3,7 @@ import env
 from src.database import models
 from .startup import client, engine, TestingSessionLocal
 from src.database.database import Base
-
-
-class Routes:
-    h = '/healthcheck'
-    u = '/users'
-    l = '/locations'
-    ul = '/user-locations'
+from main import Routes
 
 
 """
@@ -54,7 +48,7 @@ Tests are roughly sorted by database model and HTTP protocol.
 """
 
 def test_healthcheck():
-    route = Routes.h
+    route = Routes.healthcheck
     r = client.get(route)
     r_json = r.json()
     assert r.status_code == 200
@@ -66,7 +60,7 @@ CREATE USER TESTS
 """
 
 def test_create_user():
-    route = Routes.u
+    route = Routes.users
     data = John().to_json()
     r = client.post(route, json=data)
     assert r.status_code == 200
@@ -74,14 +68,14 @@ def test_create_user():
 
 def test_create_existing_user():
     setup_database(John())
-    route = Routes.u
+    route = Routes.users
     data = John().to_json()
     r = client.post(route, json=data)
     assert r.status_code == 409
 
 
 def test_create_user_no_name():
-    route = Routes.u
+    route = Routes.users
     data = John().to_json()
     del data["name"]
     r = client.post(route, json=data)
@@ -89,7 +83,7 @@ def test_create_user_no_name():
 
 
 def test_create_user_no_phone():
-    route = Routes.u
+    route = Routes.users
     data = John().to_json()
     del data["phone"]
     r = client.post(route, json=data)
@@ -101,7 +95,7 @@ CREATE LOCATION TESTS
 """
 
 def test_create_location():
-    route = Routes.l
+    route = Routes.locations
     data = PPG().to_json()
     r = client.post(route, json=data)
     assert r.status_code == 200
@@ -109,14 +103,14 @@ def test_create_location():
 
 def test_create_existing_location():
     setup_database(PPG())
-    route = Routes.l
+    route = Routes.locations
     data = PPG().to_json()
     r = client.post(route, json=data)
     assert r.status_code == 409
 
 
 def test_create_location_no_address():
-    route = Routes.l
+    route = Routes.locations
     data = PPG().to_json()
     del data["address"]
     r = client.post(route, json=data)
@@ -129,7 +123,7 @@ CREATE USERLOCATION TESTS
 
 def test_create_user_location():
     setup_database(John(), PPG())
-    route = Routes.ul
+    route = Routes.userlocations
     data = {"phone":John().phone, "address":PPG().address}
     r = client.post(route, json=data)
     assert r.status_code == 200
@@ -137,7 +131,7 @@ def test_create_user_location():
 
 def test_create_existing_user_location():
     setup_database(John(), PPG())
-    route = Routes.ul
+    route = Routes.userlocations
     # create user location first
     data = {"phone":John().phone, "address":PPG().address}
     r = client.post(route, json=data)
@@ -148,7 +142,7 @@ def test_create_existing_user_location():
 
 def test_create_user_location_no_phone():
     setup_database(John(), PPG())
-    route = Routes.ul
+    route = Routes.userlocations
     data = {"address":PPG().address}
     r = client.post(route, json=data)
     assert r.status_code == 422
@@ -156,14 +150,14 @@ def test_create_user_location_no_phone():
 
 def test_create_user_location_no_address():
     setup_database(John(), PPG())
-    route = Routes.ul
+    route = Routes.userlocations
     data = {"phone":John().phone}
     r = client.post(route, json=data)
     assert r.status_code == 422
 
 def test_create_multiple_user_locations():
     setup_database(John(), PPG(), Heinz())
-    route = Routes.ul
+    route = Routes.userlocations
     addresses = [PPG().address, Heinz().address]
     for address in addresses:
         data = {"phone":John().phone,"address":address}
@@ -176,7 +170,7 @@ def test_create_multiple_user_locations():
 def test_create_user_location_different_user_same_address():
     setup_database(John(), Mary(), PPG())
     # create John's userlocation
-    route = Routes.ul
+    route = Routes.userlocations
     client.post(route, json={"phone":John().phone,"address":PPG().address})
     # then create Mary's
     data = {"phone":Mary().phone,"address":PPG().address}
@@ -193,7 +187,7 @@ READ USER TESTS
 
 def test_get_user():
     setup_database(John())
-    route = "{route}?phone={phone}".format(route=Routes.u, phone=John().phone)
+    route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
     r = client.get(route)
     r_json = r.json()
     assert r.status_code == 200
@@ -202,13 +196,13 @@ def test_get_user():
 
 
 def test_get_nonexistent_user():
-    route = "{route}?phone={phone}".format(route=Routes.u, phone="000000000")
+    route = "{route}?phone={phone}".format(route=Routes.users, phone="000000000")
     r = client.get(route)
     assert r.status_code == 404
 
 
 def test_get_user_no_phone():
-    route = "{route}".format(route=Routes.u)
+    route = "{route}".format(route=Routes.users)
     r = client.get(route)
     assert r.status_code == 422
 
@@ -219,7 +213,7 @@ READ LOCATION TESTS
 
 def test_get_location():
     setup_database(PPG())
-    route = "{route}?address={address}".format(route=Routes.l, address=PPG().address)
+    route = "{route}?address={address}".format(route=Routes.locations, address=PPG().address)
     r = client.get(route)
     r_json = r.json()
     assert r.status_code == 200
@@ -227,13 +221,13 @@ def test_get_location():
 
 
 def test_get_nonexistent_location():
-    route = "{route}?address={address}".format(route=Routes.l, address="not a real address")
+    route = "{route}?address={address}".format(route=Routes.locations, address="not a real address")
     r = client.get(route)
     assert r.status_code == 404
 
 
 def test_get_location_no_address():
-    route = "{route}".format(route=Routes.l)
+    route = "{route}".format(route=Routes.locations)
     r = client.get(route)
     assert r.status_code == 422
 
@@ -245,8 +239,8 @@ READ USERLOCATION TESTS
 def test_get_one_user_location():
     setup_database(John(), PPG())
     ul_nickname = "Work"
-    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address,"nickname":ul_nickname})
-    route = "{route}?phone={phone}&nickname={nickname}".format(route=Routes.ul, phone=John().phone, nickname=ul_nickname)
+    client.post(Routes.userlocations, json={"phone":John().phone,"address":PPG().address,"nickname":ul_nickname})
+    route = "{route}?phone={phone}&nickname={nickname}".format(route=Routes.userlocations, phone=John().phone, nickname=ul_nickname)
     r = client.get(route)
     r_json = r.json()[0]
     assert r.status_code == 200
@@ -259,8 +253,8 @@ def test_get_all_user_locations():
     setup_database(John(), PPG(), Heinz())
     addresses = {PPG().address, Heinz().address}
     for address in addresses:
-        client.post(Routes.ul, json={"phone":John().phone, "address":address})
-    route = "{route}?phone={phone}".format(route=Routes.ul, phone=John().phone)
+        client.post(Routes.userlocations, json={"phone":John().phone, "address":address})
+    route = "{route}?phone={phone}".format(route=Routes.userlocations, phone=John().phone)
     r = client.get(route)
     assert r.status_code == 200
     r_json_list = r.json()
@@ -272,7 +266,7 @@ def test_get_all_user_locations():
 
 def test_get_nonexistent_user_location():
     ul_nickname = "Work"
-    route = "{route}?phone={phone}&nickname={nickname}".format(route=Routes.ul, phone=John().phone, nickname=ul_nickname)
+    route = "{route}?phone={phone}&nickname={nickname}".format(route=Routes.userlocations, phone=John().phone, nickname=ul_nickname)
     r = client.get(route)
     assert r.status_code == 404
 
@@ -280,8 +274,8 @@ def test_get_nonexistent_user_location():
 def test_get_user_location_no_phone():
     setup_database(John(), PPG())
     ul_nickname = "Work"
-    client.post(Routes.ul, json={"phone":John().phone, "address":PPG().address, "nickname":ul_nickname})
-    route = "{route}?nickname={nickname}".format(route=Routes.ul, nickname=ul_nickname)
+    client.post(Routes.userlocations, json={"phone":John().phone, "address":PPG().address, "nickname":ul_nickname})
+    route = "{route}?nickname={nickname}".format(route=Routes.userlocations, nickname=ul_nickname)
     r = client.get(route)
     assert r.status_code == 422
 
@@ -292,26 +286,26 @@ DELETE USER TESTS
 
 def test_delete_user():
     setup_database(John())
-    route = "{route}?phone={phone}".format(route=Routes.u, phone=John().phone)
+    route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
     r = client.delete(route)
     assert r.status_code == 200
 
 
 def test_delete_nonexistent_user():
-    route = "{route}?phone={phone}".format(route=Routes.u, phone=John().phone)
+    route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
     r = client.delete(route)
     assert r.status_code == 404
 
 
 def test_delete_user_cascade_delete_user_locations():
     setup_database(John())
-    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
+    client.post(Routes.userlocations, json={"phone":John().phone,"address":PPG().address})
     # delete user
-    route = "{route}?phone={phone}".format(route=Routes.u, phone=John().phone)
+    route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
     r = client.delete(route)
     assert r.status_code == 200
     # check userlocation deletion
-    route = "{route}?phone={phone}".format(route=Routes.ul, phone=John().phone)
+    route = "{route}?phone={phone}".format(route=Routes.userlocations, phone=John().phone)
     r = client.get(route)
     assert r.status_code == 404
 
@@ -322,21 +316,21 @@ DELETE LOCATION TESTS
 
 def test_delete_location():
     setup_database(PPG())
-    route = "{route}?address={address}".format(route=Routes.l, address=PPG().address)
+    route = "{route}?address={address}".format(route=Routes.locations, address=PPG().address)
     r = client.delete(route)
     assert r.status_code == 200
 
 
 def test_delete_nonexistent_location():
-    route = "{route}?address={address}".format(route=Routes.l, address=PPG().address)
+    route = "{route}?address={address}".format(route=Routes.locations, address=PPG().address)
     r = client.delete(route)
     assert r.status_code == 404
 
 
 def test_delete_location_referenced_by_user_location():
     setup_database(John(), PPG())
-    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
-    route = "{route}?address={address}".format(route=Routes.l, address=PPG().address)
+    client.post(Routes.userlocations, json={"phone":John().phone,"address":PPG().address})
+    route = "{route}?address={address}".format(route=Routes.locations, address=PPG().address)
     r = client.delete(route)
     assert r.status_code == 409
 
@@ -347,42 +341,42 @@ DELETE USER LOCATION TESTS
 def test_delete_user_location_by_nickname():
     setup_database(John(), PPG())
     ul_nickname = "Work"
-    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address,"nickname":ul_nickname})
-    route = "{route}?phone={phone}&nickname={nickname}".format(route=Routes.ul, phone=John().phone, nickname=ul_nickname)
+    client.post(Routes.userlocations, json={"phone":John().phone,"address":PPG().address,"nickname":ul_nickname})
+    route = "{route}?phone={phone}&nickname={nickname}".format(route=Routes.userlocations, phone=John().phone, nickname=ul_nickname)
     r = client.delete(route)
     assert r.status_code == 200
 
 def test_delete_user_location_by_address():
     setup_database(John(), PPG())
-    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
-    route = "{route}?phone={phone}&address={address}".format(route=Routes.ul, phone=John().phone, address=PPG().address)
+    client.post(Routes.userlocations, json={"phone":John().phone,"address":PPG().address})
+    route = "{route}?phone={phone}&address={address}".format(route=Routes.userlocations, phone=John().phone, address=PPG().address)
     r = client.delete(route)
     assert r.status_code == 200
 
 def test_delete_user_location_no_phone():
     setup_database(John(), PPG())
-    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
-    route = "{route}?address={address}".format(route=Routes.ul, address=PPG().address)
+    client.post(Routes.userlocations, json={"phone":John().phone,"address":PPG().address})
+    route = "{route}?address={address}".format(route=Routes.userlocations, address=PPG().address)
     r = client.delete(route)
     assert r.status_code == 422
 
 def test_delete_user_location_only_phone():
     setup_database(John(), PPG())
-    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
-    route = "{route}?phone={phone}".format(route=Routes.ul, phone=John().phone)
+    client.post(Routes.userlocations, json={"phone":John().phone,"address":PPG().address})
+    route = "{route}?phone={phone}".format(route=Routes.userlocations, phone=John().phone)
     r = client.delete(route)
     assert r.status_code == 422
 
 def test_delete_nonexistent_user_location():
-    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
-    route = "{route}?phone={phone}&address={address}".format(route=Routes.ul, phone=John().phone, address=PPG().address)
+    client.post(Routes.userlocations, json={"phone":John().phone,"address":PPG().address})
+    route = "{route}?phone={phone}&address={address}".format(route=Routes.userlocations, phone=John().phone, address=PPG().address)
     r = client.delete(route)
     assert r.status_code == 404
 
 def test_delete_someone_elses_user_location():
     setup_database(John(), Mary(), PPG(), Heinz())
-    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
-    client.post(Routes.ul, json={"phone":Mary().phone,"address":Heinz().address})
-    route = "{route}?phone={phone}&address={address}".format(route=Routes.ul, phone=John().phone, address=Heinz().address)
+    client.post(Routes.userlocations, json={"phone":John().phone,"address":PPG().address})
+    client.post(Routes.userlocations, json={"phone":Mary().phone,"address":Heinz().address})
+    route = "{route}?phone={phone}&address={address}".format(route=Routes.userlocations, phone=John().phone, address=Heinz().address)
     r = client.delete(route)
     assert r.status_code == 404
