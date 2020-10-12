@@ -13,16 +13,26 @@ class Routes:
     ul = '/user-locations'
 
 
-"""DUMMY DATA"""
+"""
+DUMMY DATA
+
+Using functions to avoid ObjectDeletedError on retest.
+Only options are cumbersome functions or tightly-coupled tests.
+"""
 
 # users
-John = models.User(name="John", phone="4126035678")
-Mary = models.User(name="Mary", phone="3046764321")
+def John():
+    return models.User(name="John", phone="4126035678")
+def Mary():
+    return models.User(name="Mary", phone="3046764321")
 
 # locations
-PPG = models.Location(address="1 PPG Pl")
-Heinz = models.Location(address="300 Heinz St")
-Steelers = models.Location(address="100 Art Rooney Ave")
+def PPG():
+    return models.Location(address="1 PPG() Pl")
+def Heinz():
+    Heinz = models.Location(address="300 Heinz St")
+def Steelers():
+    models.Location(address="100 Art Rooney Ave")
 
 # automatically resets database between tests
 @pytest.fixture(autouse=True)
@@ -31,11 +41,10 @@ def reset_database():
     Base.metadata.create_all(bind=engine)
 
 # for adding records to database before each test
+db = TestingSessionLocal()
 def setup_database(*objects):
-    db = TestingSessionLocal()
-    if objects:
-        for obj in objects:
-            db.add(obj)
+    for obj in objects:
+        db.add(obj)
         db.commit()
 
 
@@ -50,19 +59,50 @@ def test_healthcheck():
 
 def test_create_user():
     route = Routes.u
-    data = John.to_json()
+    data = John().to_json()
     r = client.post(route, json=data)
     assert r.status_code == 200
 
 def test_create_location():
     route = Routes.l
-    data = PPG.to_json()
+    data = PPG().to_json()
     r = client.post(route, json=data)
     assert r.status_code == 200
 
 def test_create_user_location():
-    setup_database(John, PPG)
+    setup_database(John(), PPG())
     route = Routes.ul
-    data = {"phone":John.phone, "address":PPG.address}
+    data = {"phone":John().phone, "address":PPG().address}
     r = client.post(route, json=data)
     assert r.status_code == 200
+
+def test_get_user():
+    setup_database(John())
+    route = "{route}?phone={phone}".format(route=Routes.u, phone=John().phone)
+    data = John().to_json()
+    r = client.get(route)
+    r_json = r.json()
+    assert r.status_code == 200
+    assert r_json["name"] == John().name
+    assert r_json["phone"] == John().phone
+
+def test_get_location():
+    setup_database(PPG())
+    route = "{route}?address={address}".format(route=Routes.l, address=PPG().address)
+    data = PPG().to_json()
+    r = client.get(route)
+    r_json = r.json()
+    assert r.status_code == 200
+    assert r_json["address"] == PPG().address
+
+def test_get_user_location():
+    setup_database(John(), PPG())
+    ul_nickname = "Work"
+    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address,"nickname":ul_nickname})
+    route = "{route}?phone={phone}&nickname={nickname}".format(route=Routes.ul, phone=John().phone, nickname=ul_nickname)
+    r = client.get(route)
+    r_json = r.json()[0]
+    assert r.status_code == 200
+    assert r_json["phone"] == John().phone
+    assert r_json["address"] == PPG().address
+    assert r_json["nickname"] == ul_nickname
