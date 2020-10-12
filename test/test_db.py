@@ -27,7 +27,7 @@ def Mary():
 
 # locations
 def PPG():
-    return models.Location(address="1 PPG() Pl")
+    return models.Location(address="1 PPG Pl")
 def Heinz():
     return models.Location(address="300 Heinz St")
 def Steelers():
@@ -284,3 +284,105 @@ def test_get_user_location_no_phone():
     route = "{route}?nickname={nickname}".format(route=Routes.ul, nickname=ul_nickname)
     r = client.get(route)
     assert r.status_code == 422
+
+
+"""
+DELETE USER TESTS
+"""
+
+def test_delete_user():
+    setup_database(John())
+    route = "{route}?phone={phone}".format(route=Routes.u, phone=John().phone)
+    r = client.delete(route)
+    assert r.status_code == 200
+
+
+def test_delete_nonexistent_user():
+    route = "{route}?phone={phone}".format(route=Routes.u, phone=John().phone)
+    r = client.delete(route)
+    assert r.status_code == 404
+
+
+def test_delete_user_cascade_delete_user_locations():
+    setup_database(John())
+    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
+    # delete user
+    route = "{route}?phone={phone}".format(route=Routes.u, phone=John().phone)
+    r = client.delete(route)
+    assert r.status_code == 200
+    # check userlocation deletion
+    route = "{route}?phone={phone}".format(route=Routes.ul, phone=John().phone)
+    r = client.get(route)
+    assert r.status_code == 404
+
+
+"""
+DELETE LOCATION TESTS
+"""
+
+def test_delete_location():
+    setup_database(PPG())
+    route = "{route}?address={address}".format(route=Routes.l, address=PPG().address)
+    r = client.delete(route)
+    assert r.status_code == 200
+
+
+def test_delete_nonexistent_location():
+    route = "{route}?address={address}".format(route=Routes.l, address=PPG().address)
+    r = client.delete(route)
+    assert r.status_code == 404
+
+
+def test_delete_location_referenced_by_user_location():
+    setup_database(John(), PPG())
+    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
+    route = "{route}?address={address}".format(route=Routes.l, address=PPG().address)
+    r = client.delete(route)
+    assert r.status_code == 409
+
+"""
+DELETE USER LOCATION TESTS
+"""
+
+def test_delete_user_location_by_nickname():
+    setup_database(John(), PPG())
+    ul_nickname = "Work"
+    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address,"nickname":ul_nickname})
+    route = "{route}?phone={phone}&nickname={nickname}".format(route=Routes.ul, phone=John().phone, nickname=ul_nickname)
+    r = client.delete(route)
+    assert r.status_code == 200
+
+def test_delete_user_location_by_address():
+    setup_database(John(), PPG())
+    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
+    route = "{route}?phone={phone}&address={address}".format(route=Routes.ul, phone=John().phone, address=PPG().address)
+    r = client.delete(route)
+    assert r.status_code == 200
+
+def test_delete_user_location_no_phone():
+    setup_database(John(), PPG())
+    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
+    route = "{route}?address={address}".format(route=Routes.ul, address=PPG().address)
+    r = client.delete(route)
+    assert r.status_code == 422
+
+def test_delete_user_location_only_phone():
+    setup_database(John(), PPG())
+    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
+    route = "{route}?phone={phone}".format(route=Routes.ul, phone=John().phone)
+    r = client.delete(route)
+    assert r.status_code == 422
+
+def test_delete_nonexistent_user_location():
+    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
+    route = "{route}?phone={phone}&address={address}".format(route=Routes.ul, phone=John().phone, address=PPG().address)
+    r = client.delete(route)
+    assert r.status_code == 404
+
+def test_delete_someone_elses_user_location():
+    setup_database(John(), Mary(), PPG(), Heinz())
+    client.post(Routes.ul, json={"phone":John().phone,"address":PPG().address})
+    client.post(Routes.ul, json={"phone":Mary().phone,"address":Heinz().address})
+    route = "{route}?phone={phone}&address={address}".format(route=Routes.ul, phone=John().phone, address=Heinz().address)
+    r = client.delete(route)
+    assert r.status_code == 404

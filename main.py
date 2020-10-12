@@ -38,6 +38,14 @@ def create_user(user: schemas.UserBase, db: Session = Depends(get_db)):
     return crud.create_user(db, user=user)
 
 
+@app.delete("/users", response_model=None)
+def delete_user(phone: str, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_phone(db, phone=phone)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return crud.delete_user(db, user=db_user)
+
+
 @app.get("/locations", response_model=schemas.Location)
 def get_locations(address: str, db: Session = Depends(get_db)):
     db_location = crud.get_location_by_address(db, address=address)
@@ -52,6 +60,17 @@ def create_location(location: schemas.LocationBase, db: Session = Depends(get_db
     if db_location:
         raise HTTPException(status_code=409, detail="Location already created")
     return crud.create_location(db, location=location)
+
+
+@app.delete("/locations", response_model=None)
+def delete_location(address: str, db: Session = Depends(get_db)):
+    db_location = crud.get_location_by_address(db, address=address)
+    if not db_location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    try:
+        return crud.delete_location(db, location=db_location)
+    except AssertionError as ex:
+        raise HTTPException(status_code=409, detail="Location cannot be deleted")
 
 
 @app.get("/user-locations", response_model=List[schemas.UserLocation])
@@ -82,6 +101,21 @@ def create_user_location(user_location_creator: schemas.UserLocation, db: Sessio
     out = crud.create_user_location(db, user=db_user, location=db_location, nickname=user_location_creator.nickname)
     return out
 
+@app.delete("/user-locations", response_model=None)
+def delete_user_location(phone: str, address: Optional[str] = None, nickname: Optional[str] = None, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_phone(db, phone=phone)
+    if address:
+        db_location = crud.get_location_by_address(db, address=address)
+        if not db_location:
+            raise HTTPException(status_code=404, detail="Location not found")
+        db_user_location = crud.get_user_location_by_user_and_location(db, user=db_user, location=db_location)
+    elif nickname:
+        db_user_location = crud.get_user_location_by_nickname_and_phone(db, nickname=nickname, phone=phone)
+    else:
+        raise HTTPException(status_code=422, detail="Address or nickname required")
+    if not db_user_location:
+        raise HTTPException(status_code=404, detail="User location not found")
+    return crud.delete_user_location(db, user_location=db_user_location)
 
 if __name__ == '__main__':
     uvicorn.run(app, host=env.HOST_ADDRESS, port=env.HOST_PORT)

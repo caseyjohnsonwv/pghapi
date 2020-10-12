@@ -7,14 +7,14 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     phone = Column(String, unique=True, nullable=False)
     name = Column(String, nullable=False)
-    locations = relationship("UserLocation")
+    userlocations = relationship("UserLocation", cascade="all, delete")
 
     def to_json(self, id=False, locations=False):
         j = {"phone":self.phone, "name":self.name}
         if self.id:
             j["id"] = self.id
-        if self.locations:
-            j["locations"] = self.locations
+        if self.userlocations:
+            j["user_locations"] = self.userlocations
         return j
 
 
@@ -32,6 +32,7 @@ class Location(Base):
     __tablename__ = "locations"
     id = Column(Integer, primary_key=True)
     address = Column(String, unique=True, nullable=False)
+    userlocations = relationship("UserLocation")
 
     def to_json(self, id=False):
         j = {"address":self.address}
