@@ -335,7 +335,7 @@ def test_delete_location_referenced_by_user_location():
     assert r.status_code == 409
 
 """
-DELETE USER LOCATION TESTS
+DELETE USERLOCATION TESTS
 """
 
 def test_delete_user_location_by_nickname():
@@ -346,12 +346,14 @@ def test_delete_user_location_by_nickname():
     r = client.delete(route)
     assert r.status_code == 200
 
+
 def test_delete_user_location_by_address():
     setup_database(John(), PPG())
     client.post(Routes.userlocations, json={"phone":John().phone,"address":PPG().address})
     route = "{route}?phone={phone}&address={address}".format(route=Routes.userlocations, phone=John().phone, address=PPG().address)
     r = client.delete(route)
     assert r.status_code == 200
+
 
 def test_delete_user_location_no_phone():
     setup_database(John(), PPG())
@@ -360,6 +362,7 @@ def test_delete_user_location_no_phone():
     r = client.delete(route)
     assert r.status_code == 422
 
+
 def test_delete_user_location_only_phone():
     setup_database(John(), PPG())
     client.post(Routes.userlocations, json={"phone":John().phone,"address":PPG().address})
@@ -367,11 +370,13 @@ def test_delete_user_location_only_phone():
     r = client.delete(route)
     assert r.status_code == 422
 
+
 def test_delete_nonexistent_user_location():
     client.post(Routes.userlocations, json={"phone":John().phone,"address":PPG().address})
     route = "{route}?phone={phone}&address={address}".format(route=Routes.userlocations, phone=John().phone, address=PPG().address)
     r = client.delete(route)
     assert r.status_code == 404
+
 
 def test_delete_someone_elses_user_location():
     setup_database(John(), Mary(), PPG(), Heinz())
@@ -380,3 +385,60 @@ def test_delete_someone_elses_user_location():
     route = "{route}?phone={phone}&address={address}".format(route=Routes.userlocations, phone=John().phone, address=Heinz().address)
     r = client.delete(route)
     assert r.status_code == 404
+
+
+"""
+PATCH USER TESTS
+"""
+
+def test_patch_user_name():
+    setup_database(John())
+    route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
+    data = {"new_name":"Jane"}
+    r = client.patch(route, json=data)
+    r_json = r.json()
+    assert r.status_code == 200
+    assert r_json["phone"] == John().phone
+    assert r_json["name"] == data["new_name"]
+
+
+def test_patch_user_phone():
+    setup_database(John())
+    route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
+    data = {"new_phone":"7189023646"}
+    r = client.patch(route, json=data)
+    r_json = r.json()
+    assert r.status_code == 200
+    assert r_json["name"] == John().name
+    assert r_json["phone"] == data["new_phone"]
+
+
+def test_patch_user_phone_existing_phone():
+    setup_database(John(), Mary())
+    route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
+    data = {"new_phone":Mary().phone}
+    r = client.patch(route, json=data)
+    r_json = r.json()
+    assert r.status_code == 409
+
+
+"""
+PATCH LOCATION TESTS
+"""
+
+def test_patch_location():
+    setup_database(Steelers())
+    route = "{route}?address={address}".format(route=Routes.locations, address=Steelers().address)
+    data = {"new_address":"1 Steelers Ave"}
+    r = client.patch(route, json=data)
+    r_json = r.json()
+    assert r.status_code == 200
+    assert r_json["address"] == data["new_address"]
+
+def test_patch_location_existing_address():
+    setup_database(PPG(), Steelers())
+    route = "{route}?address={address}".format(route=Routes.locations, address=Steelers().address)
+    data = {"new_address":PPG().address}
+    r = client.patch(route, json=data)
+    r_json = r.json()
+    assert r.status_code == 409

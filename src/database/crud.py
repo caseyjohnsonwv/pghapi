@@ -30,6 +30,22 @@ def delete_user(db: Session, user: schemas.User):
     db.delete(db_user)
     db.commit()
 
+def update_user_name(db: Session, user: schemas.User, new_name: str):
+    db_user = db.query(models.User).filter(models.User.id == user.id).first()
+    db_user.name = new_name
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+def update_user_phone(db: Session, user: schemas.User, new_phone: str):
+    db_user = db.query(models.User).filter(models.User.id == user.id).first()
+    db_user.phone = new_phone
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
 
 def get_location_by_address(db: Session, address: str):
     return db.query(models.Location).filter(models.Location.address == address).first()
@@ -45,6 +61,14 @@ def delete_location(db: Session, location: schemas.Location):
     db_location = db.query(models.Location).filter(models.Location.id == location.id).first()
     db.delete(db_location)
     db.commit()
+
+def update_location_address(db: Session, location: schemas.Location, new_address: str):
+    db_location = db.query(models.Location).filter(models.Location.id == location.id).first()
+    db_location.address = new_address
+    db.add(db_location)
+    db.commit()
+    db.refresh(db_location)
+    return db_location
 
 
 def get_user_locations_by_phone(db: Session, phone: str):

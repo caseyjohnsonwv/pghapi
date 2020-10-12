@@ -8,7 +8,7 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[schemas.UserLocation])
-def get_user_locations(phone: str, nickname: Optional[str]=None, db: Session = Depends(get_db)):
+def read_user_locations(phone: str, nickname: Optional[str]=None, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_phone(db, phone=phone)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
