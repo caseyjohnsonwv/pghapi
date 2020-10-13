@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from src.database import crud, models, schemas
-from main import get_db
 
 router = APIRouter()
+
+from main import get_db
 
 
 @router.get("/", response_model=schemas.Location)
