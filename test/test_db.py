@@ -90,6 +90,14 @@ def test_create_user_no_phone():
     assert r.status_code == 422
 
 
+def test_create_user_invalid_phone():
+    route = Routes.users
+    data = John().to_json()
+    data["phone"] = "invalid phone"
+    r = client.post(route, json=data)
+    assert r.status_code == 422
+
+
 """
 CREATE LOCATION TESTS
 """
