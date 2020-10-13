@@ -3,7 +3,7 @@ import env
 from src.database import models
 from .startup import client, engine, TestingSessionLocal
 from src.database.database import Base
-from main import Routes
+from src.routers.routes import Routes
 
 
 """
@@ -86,6 +86,14 @@ def test_create_user_no_phone():
     route = Routes.users
     data = John().to_json()
     del data["phone"]
+    r = client.post(route, json=data)
+    assert r.status_code == 422
+
+
+def test_create_user_invalid_phone():
+    route = Routes.users
+    data = John().to_json()
+    data["phone"] = "invalid phone"
     r = client.post(route, json=data)
     assert r.status_code == 422
 

@@ -2,9 +2,10 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from src.database import crud, models, schemas
-from main import get_db
 
 router = APIRouter()
+
+from main import get_db
 
 
 @router.get("/", response_model=List[schemas.UserLocation])
