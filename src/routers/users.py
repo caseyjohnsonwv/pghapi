@@ -35,12 +35,7 @@ def update_user(phone: str, payload: schemas.UserUpdater, db: Session = Depends(
     db_user = crud.get_user_by_phone(db, phone=phone)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
-    if payload.new_name:
-        return crud.update_user_name(db, user=db_user, new_name=payload.new_name)
-    elif payload.new_phone:
-        try:
-            return crud.update_user_phone(db, user=db_user, new_phone=payload.new_phone)
-        except IntegrityError as ex:
-            raise HTTPException(status_code=409, detail="Phone already registered")
-    else:
-        raise HTTPException(status_code=400, detail="No update data supplied")
+    try:
+        return crud.update_user(db, user=db_user, payload=payload)
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Phone already registered")

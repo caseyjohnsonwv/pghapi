@@ -421,6 +421,17 @@ def test_patch_user_phone():
     assert r_json["phone"] == data["new_phone"]
 
 
+def test_patch_user_name_and_phone():
+    setup_database(John())
+    route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
+    data = {"new_phone":"7189023646", "new_name":"Jane"}
+    r = client.patch(route, json=data)
+    r_json = r.json()
+    assert r.status_code == 200
+    assert r_json["name"] == data["new_name"]
+    assert r_json["phone"] == data["new_phone"]
+
+
 def test_patch_user_phone_existing_phone():
     setup_database(John(), Mary())
     route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
