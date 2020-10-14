@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional, Union
+from typing import List, Optional
 from pydantic import BaseModel, validator
 
 
@@ -62,3 +62,15 @@ class User(UserBase):
     locations: List[UserLocation] = []
     class Config:
         orm_mode = True
+
+
+class TravelTime(BaseModel):
+    destinations: List[str]
+    time_estimates: List[int]
+    class Config:
+        orm_mode = True
+    @validator('time_estimates')
+    def _validate_traveltime_response(time_estimates: List[int]):
+        if len(destinations)-1 != len(time_estimates):
+            raise ValueError("Must be one more address than time estimates")
+        return time_estimates

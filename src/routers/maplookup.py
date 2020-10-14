@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from typing import List
+from fastapi import APIRouter, HTTPException, Query
 from src.database import schemas
 from .routes import Routes
 
@@ -11,6 +12,6 @@ from main import get_db
 def read_address(address: str):
     pass
 
-@router.get(Routes.MapLookup.traveltime_suffix, response_model = None)
-def read_traveltime(address1: str, address2: str):
+@router.get(Routes.MapLookup.traveltime_suffix, response_model = schemas.TravelTime)
+def read_traveltime(addresses: List[str] = Query(None)):
     pass
