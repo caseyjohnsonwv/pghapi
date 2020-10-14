@@ -402,43 +402,54 @@ PATCH USER TESTS
 def test_patch_user_name():
     setup_database(John())
     route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
-    data = {"new_name":"Jane"}
+    data = {"name":"Jane"}
     r = client.patch(route, json=data)
     r_json = r.json()
     assert r.status_code == 200
     assert r_json["phone"] == John().phone
-    assert r_json["name"] == data["new_name"]
+    assert r_json["name"] == data["name"]
 
 
 def test_patch_user_phone():
     setup_database(John())
     route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
-    data = {"new_phone":"7189023646"}
+    data = {"phone":"7189023646"}
     r = client.patch(route, json=data)
     r_json = r.json()
     assert r.status_code == 200
     assert r_json["name"] == John().name
-    assert r_json["phone"] == data["new_phone"]
+    assert r_json["phone"] == data["phone"]
 
 
 def test_patch_user_name_and_phone():
     setup_database(John())
     route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
-    data = {"new_phone":"7189023646", "new_name":"Jane"}
+    data = {"phone":"7189023646", "name":"Jane"}
     r = client.patch(route, json=data)
     r_json = r.json()
     assert r.status_code == 200
-    assert r_json["name"] == data["new_name"]
-    assert r_json["phone"] == data["new_phone"]
+    assert r_json["name"] == data["name"]
+    assert r_json["phone"] == data["phone"]
 
 
 def test_patch_user_phone_existing_phone():
     setup_database(John(), Mary())
     route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
-    data = {"new_phone":Mary().phone}
+    data = {"phone":Mary().phone}
+    r = client.patch(route, json=data)
+    assert r.status_code == 409
+
+
+def test_patch_user_preferences():
+    setup_database(John())
+    route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
+    data = {"allow_tolls":False, "allow_highways":False, "allow_ferries":False}
     r = client.patch(route, json=data)
     r_json = r.json()
-    assert r.status_code == 409
+    assert r.status_code == 200
+    assert r_json["allow_tolls"] == data["allow_tolls"]
+    assert r_json["allow_highways"] == data["allow_highways"]
+    assert r_json["allow_ferries"] == data["allow_ferries"]
 
 
 """

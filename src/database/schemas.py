@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional, Union
+from typing import List, Optional
 from pydantic import BaseModel, validator
 
 
@@ -51,14 +51,20 @@ class UserBase(BaseModel):
     _phone_validator: classmethod = phone_validator('phone')
 
 class UserUpdater(BaseModel):
-    new_phone: Optional[str] = None
-    new_name: Optional[str] = None
+    phone: Optional[str] = None
+    name: Optional[str] = None
+    allow_tolls: Optional[bool] = None
+    allow_highways: Optional[bool] = None
+    allow_ferries: Optional[bool] = None
     class config:
         orm_mode = True
     _phone_validator: classmethod = phone_validator('phone')
 
 class User(UserBase):
     id: int
+    allow_tolls: bool
+    allow_highways: bool
+    allow_ferries: bool
     locations: List[UserLocation] = []
     class Config:
         orm_mode = True
