@@ -1,24 +1,9 @@
 import pytest
 import env
 from src.database import models
-from .startup import client, engine, TestingSessionLocal
+from .startup import client, setup_database, reset_database
 from .dummy_data import *
-from src.database.database import Base
 from src.routers.routes import Routes
-
-
-# automatically resets database between tests
-@pytest.fixture(autouse=True)
-def reset_database():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-
-# for adding records to database before each test
-db = TestingSessionLocal()
-def setup_database(*objects):
-    for obj in objects:
-        db.add(obj)
-        db.commit()
 
 
 """

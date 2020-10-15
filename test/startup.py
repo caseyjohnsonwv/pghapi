@@ -1,3 +1,4 @@
+import pytest
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -12,9 +13,20 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-#drain db and recreate
-Base.metadata.drop_all(bind=engine)
-Base.metadata.create_all(bind=engine)
+
+# automatically resets database between tests
+@pytest.fixture(autouse=True)
+def reset_database():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+
+# for adding records to database before each test
+def setup_database(*objects):
+    db = TestingSessionLocal()
+    for obj in objects:
+        db.add(obj)
+        db.commit()
+
 
 #point app to test db
 def override_get_db():
