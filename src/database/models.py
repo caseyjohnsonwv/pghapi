@@ -12,19 +12,9 @@ class User(Base):
     allow_ferries = Column(Boolean, default=True)
     userlocations = relationship("UserLocation", cascade="all, delete")
 
-    def to_json(self, id=False, locations=False, preferences=False):
-        j = {
-            "phone":self.phone,
-            "name":self.name,
-        }
-        if self.id:
-            j["id"] = self.id
-        if self.userlocations:
-            j["user_locations"] = self.userlocations
-        if preferences:
-            j["allow_tolls"] = self.allow_tolls
-            j["allow_highways"] = self.allow_highways
-            j["allow_ferries"] = self.allow_ferries
+    def to_json(self):
+        j = self.__dict__
+        j.pop('_sa_instance_state')
         return j
 
 
@@ -35,7 +25,9 @@ class UserLocation(Base):
     nickname = Column(String)
 
     def to_json(self):
-        return {"user_id":self.user_id, "location_id":self.location_id, "nickname":self.nickname}
+        j = self.__dict__
+        j.pop('_sa_instance_state')
+        return j
 
 
 class Location(Base):
@@ -44,8 +36,7 @@ class Location(Base):
     address = Column(String, unique=True, nullable=False)
     userlocations = relationship("UserLocation")
 
-    def to_json(self, id=False):
-        j = {"address":self.address}
-        if self.id:
-            j["id"] = self.id
+    def to_json(self):
+        j = self.__dict__
+        j.pop('_sa_instance_state')
         return j
