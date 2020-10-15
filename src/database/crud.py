@@ -30,17 +30,18 @@ def delete_user(db: Session, user: schemas.User):
     db.delete(db_user)
     db.commit()
 
-def update_user_name(db: Session, user: schemas.User, new_name: str):
+def update_user(db: Session, user: schemas.User, payload: schemas.UserUpdater):
     db_user = db.query(models.User).filter(models.User.id == user.id).first()
-    db_user.name = new_name
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
-
-def update_user_phone(db: Session, user: schemas.User, new_phone: str):
-    db_user = db.query(models.User).filter(models.User.id == user.id).first()
-    db_user.phone = new_phone
+    if payload.name:
+        db_user.name = payload.name
+    if payload.phone:
+        db_user.phone = payload.phone
+    if payload.allow_tolls:
+        db_user.allow_tolls = payload.allow_tolls
+    if payload.allow_highways:
+        db_user.allow_highways = payload.allow_highways
+    if payload.allow_ferries:
+        db_user.allow_ferries = payload.allow_ferries
     db.add(db_user)
     db.commit()
     db.refresh(db_user)

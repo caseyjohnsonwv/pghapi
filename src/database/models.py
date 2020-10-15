@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -7,14 +7,24 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     phone = Column(String, unique=True, nullable=False)
     name = Column(String, nullable=False)
+    allow_tolls = Column(Boolean, default=True)
+    allow_highways = Column(Boolean, default=True)
+    allow_ferries = Column(Boolean, default=True)
     userlocations = relationship("UserLocation", cascade="all, delete")
 
-    def to_json(self, id=False, locations=False):
-        j = {"phone":self.phone, "name":self.name}
+    def to_json(self, id=False, locations=False, preferences=False):
+        j = {
+            "phone":self.phone,
+            "name":self.name,
+        }
         if self.id:
             j["id"] = self.id
         if self.userlocations:
             j["user_locations"] = self.userlocations
+        if preferences:
+            j["allow_tolls"] = self.allow_tolls
+            j["allow_highways"] = self.allow_highways
+            j["allow_ferries"] = self.allow_ferries
         return j
 
 
