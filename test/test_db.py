@@ -443,13 +443,13 @@ def test_patch_user_phone_existing_phone():
 def test_patch_user_preferences():
     setup_database(John())
     route = "{route}?phone={phone}".format(route=Routes.users, phone=John().phone)
-    data = {"allow_tolls":False, "allow_highways":False, "allow_ferries":False}
+    data = {"preferences":{models._UserPrefs.allow_tolls.value:False, models._UserPrefs.allow_highways.value:False, models._UserPrefs.allow_ferries.value:False}}
     r = client.patch(route, json=data)
-    r_json = r.json()
+    prefs = r.json()["preferences"]
     assert r.status_code == 200
-    assert r_json["allow_tolls"] == data["allow_tolls"]
-    assert r_json["allow_highways"] == data["allow_highways"]
-    assert r_json["allow_ferries"] == data["allow_ferries"]
+    assert prefs[models._UserPrefs.allow_tolls.value] == data["preferences"][models._UserPrefs.allow_tolls.value]
+    assert prefs[models._UserPrefs.allow_highways.value] == data["preferences"][models._UserPrefs.allow_highways.value]
+    assert prefs[models._UserPrefs.allow_ferries.value] == data["preferences"][models._UserPrefs.allow_ferries.value]
 
 
 """

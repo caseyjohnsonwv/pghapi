@@ -1,15 +1,21 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from enum import Enum
+from sqlalchemy import Column, Integer, String, Boolean, PickleType, ForeignKey
 from sqlalchemy.orm import relationship
 from .database import Base
+
+
+class _UserPrefs(Enum):
+    allow_tolls = "allow_tolls"
+    allow_highways = "allow_highways"
+    allow_ferries = "allow_ferries"
+
 
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     phone = Column(String, unique=True, nullable=False)
     name = Column(String, nullable=False)
-    allow_tolls = Column(Boolean, default=True)
-    allow_highways = Column(Boolean, default=True)
-    allow_ferries = Column(Boolean, default=True)
+    preferences = Column(PickleType, nullable=False, default={item:True for item in _UserPrefs})
     userlocations = relationship("UserLocation", cascade="all, delete")
 
     def to_json(self):
