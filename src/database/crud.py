@@ -32,15 +32,15 @@ def delete_user(db: Session, user: schemas.User):
 
 def update_user(db: Session, user: schemas.User, payload: schemas.UserUpdater):
     db_user = db.query(models.User).filter(models.User.id == user.id).first()
-    if payload.name:
+    if payload.name is not None:
         db_user.name = payload.name
-    if payload.phone:
+    if payload.phone is not None:
         db_user.phone = payload.phone
-    if payload.allow_tolls:
+    if payload.allow_tolls is not None:
         db_user.allow_tolls = payload.allow_tolls
-    if payload.allow_highways:
+    if payload.allow_highways is not None:
         db_user.allow_highways = payload.allow_highways
-    if payload.allow_ferries:
+    if payload.allow_ferries is not None:
         db_user.allow_ferries = payload.allow_ferries
     db.add(db_user)
     db.commit()

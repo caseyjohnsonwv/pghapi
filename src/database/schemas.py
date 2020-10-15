@@ -56,7 +56,7 @@ class UserUpdater(BaseModel):
     allow_tolls: Optional[bool] = None
     allow_highways: Optional[bool] = None
     allow_ferries: Optional[bool] = None
-    class config:
+    class Config:
         orm_mode = True
     _phone_validator: classmethod = phone_validator('phone')
 
