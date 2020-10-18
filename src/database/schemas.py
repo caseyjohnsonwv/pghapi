@@ -2,6 +2,7 @@ import re
 from datetime import datetime
 from typing import List, Optional, Dict
 from pydantic import BaseModel, validator
+from src.maps import gmapsworker
 
 
 def _validate_phone(v: str):
@@ -17,6 +18,9 @@ def phone_validator(field:str):
 
 class LocationBase(BaseModel):
     address: str
+    @validator('address')
+    def _standardize_address(address):
+        return gmapsworker.standardize_address(address)
 
 class LocationUpdater(BaseModel):
     new_address: str

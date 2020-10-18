@@ -424,7 +424,7 @@ PATCH LOCATION TESTS
 def test_patch_location():
     setup_database(Steelers())
     route = "{route}?address={address}".format(route=Routes.locations, address=Steelers().address)
-    data = {"new_address":"1 Steelers Ave"}
+    data = {"new_address":"115 Federal St, Pittsburgh, PA 15212, USA"}
     r = client.patch(route, json=data)
     r_json = r.json()
     assert r.status_code == 200

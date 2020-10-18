@@ -19,7 +19,8 @@ ie, the response is a table and its diagonal has unique combinations of origins/
 
 
 def standardize_address(address: str):
-    pass
+    r = gmaps.geocode(address)
+    return r[0]['formatted_address']
 
 
 # for now, assume only one origin and destination

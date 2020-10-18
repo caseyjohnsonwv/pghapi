@@ -14,8 +14,8 @@ def Mary():
 
 # locations
 def PPG():
-    return models.Location(address="1 PPG Pl")
+    return models.Location(address="1 PPG Pl, Pittsburgh, PA 15222, USA")
 def Heinz():
-    return models.Location(address="300 Heinz St")
+    return models.Location(address="300 Heinz St, Pittsburgh, PA 15212, USA")
 def Steelers():
-    return models.Location(address="100 Art Rooney Ave")
+    return models.Location(address="100 Art Rooney Ave, Pittsburgh, PA 15212, USA")
